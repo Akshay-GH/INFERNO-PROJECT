@@ -37,12 +37,13 @@ export default function Signup() {
     }
 
     try {
-      const response = await fetch("http://20.193.151.222:8000/", { // Added /register/ endpoint
+      const response = await fetch("http://127.0.0.1:8000/", { // Added /register/ endpoint
         method: "POST",
+        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
+        body: JSON.stringify({ //stringify is used to convert the object to a JSON string
           first_name: formData.first_name,
           last_name: formData.last_name,
           username: formData.username,

@@ -54,6 +54,12 @@ const Navbar = () => {
                         Order History
                     </Link>
                     <Link
+                        to="/stockchart"
+                        className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-medium px-4 py-2 rounded-full button-hover-effect flex items-center justify-center"
+                    >
+                        Stock Chart
+                    </Link>
+                    <Link
                         to="/stocklist"
                         className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-medium px-4 py-2 rounded-full button-hover-effect flex items-center justify-center"
                     >

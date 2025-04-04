@@ -102,7 +102,7 @@ export default function CandleStickChart({ stockSymbol }) {
 
   const fetchStockData = async () => {
     try {
-      const response = await fetch("http://20.193.151.222:8000/stock_chart_data/MSFT/");
+      const response = await fetch("http://localhost:8000/stock_chart_data/MSFT/");
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
