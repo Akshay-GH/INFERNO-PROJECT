@@ -9,6 +9,9 @@ const Landing = () => {
   // Animation delay states for each element
   const [loaded, setLoaded] = useState(false);
 
+fetch("http://127.0.0.1:8000/stockPicker/").then((response) => response.json()).then((data) => {console.log(data)}).catch((error) => {console.error("Error fetching data:", error)});
+  
+
   useEffect(() => {
     setLoaded(true);
 

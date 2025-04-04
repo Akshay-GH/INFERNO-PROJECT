@@ -1,57 +1,66 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import useWebSocket from "../components/useWebSocket";
-import { Star, TrendingUp, TrendingDown, MoreHorizontal, ArrowUp, ArrowDown } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import useWebSocket from '../components/useWebSocket';
 import Navbar from '../components/Navbar';
 import StarBackground from '../components/StarBackground';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../components/ui/table.jsx";
 import BG from '../assets/BgInferno.svg';
 
 const Stocklist = () => {
     const navigate = useNavigate();
     const socketRef = useWebSocket("track");
     const [stocks, setStocks] = useState([]);
-    const [favorites, setFavorites] = useState(new Set());
 
-    // Initialize with your stock data structure
     useEffect(() => {
-        // This should match what your backend initially sends
-        const initialStocks = [
-            // Example structure - replace with your actual tickers
-            { symbol: "AAPL", name: "Apple Inc." },
-            { symbol: "MSFT", name: "Microsoft Corp." }
-        ].map((stock, index) => ({
-            id: index + 1,
-            symbol: stock.symbol,
-            name: stock.name,
-            logo: `https://placehold.co/36x36/gray/white?text=${stock.symbol.charAt(0)}`,
-            price: "N/A",
-            open: "N/A",
-            high: "N/A",
-            low: "N/A",
-            volume: "N/A",
-            change24h: "0.00%",
-            change24hUp: true
-        }));
+        const fetchInitialData = async () => {
+            try {
+                const queryString = window.location.search;
+                console.log("Query String oj:", queryString);
 
-        setStocks(initialStocks);
-    }, []);
+                const response = await fetch(`http://127.0.0.1:8000/stocktracker/?stock_picker=AAPL&stock_picker=GOOGL&stock_picker=AMZN&stock_picker=MSFT&stock_picker=TSLA&stock_picker=NVDA&stock_picker=META&stock_picker=NFLX`, {
+                    method: "GET",
+                    credentials: 'include', // This sends cookies
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // 'X-CSRFToken': getCookie('csrftoken') || '',
+                    }
+                });
+                
 
-    const toggleFavorite = (id, e) => {
-        e.stopPropagation();
-        setFavorites(prev => {
-            const newFavorites = new Set(prev);
-            newFavorites.has(id) ? newFavorites.delete(id) : newFavorites.add(id);
-            return newFavorites;
-        });
-    };
+                if (response.status === 401) {
+                    navigate('/login');
+                    return;
+                }
 
-    const handleStockClick = (symbol) => {
-        navigate(`/stock/${symbol}`);
-    };
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log("Full response JSON:", data);
+                const initialStocks = Object.entries(data.data).map(([ticker, details], index) => ({
+                    id: index + 1,
+                    ticker,
+                    close: details.close,
+                    open: details.open,
+                    high: details.high,
+                    low: details.low,
+                    volume: details.volume
+                }));
+
+                setStocks(initialStocks);
+            } catch (error) {
+                console.error("Error fetching initial data:", error);
+                if (error.message.includes('401')) {
+                    navigate('/login');
+                }
+            }
+        };
+
+        fetchInitialData();
+    }, [navigate]);
 
     return (
-        <div className="min-h-screen w-full overflow-x-hidden bg-background"
+        <div className="min-h-screen w-full overflow-x-hidden"
             style={{ backgroundImage: `url(${BG})`, backgroundSize: "cover", backgroundPosition: "center" }}>
             
             <StarBackground />
@@ -59,101 +68,60 @@ const Stocklist = () => {
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-28 pb-16">
                 <div className="glass-panel p-6 rounded-xl backdrop-blur-xl border border-gray-800">
+                    <div className="flex justify-between items-center mb-6">
+                        <h1 className="text-2xl font-bold text-white">Live Stock Tracker</h1>
+                        <button 
+                            onClick={() => navigate('/chart')}
+                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-colors"
+                        >
+                            Buy/Sell
+                        </button>
+                    </div>
+
                     <div className="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="border-gray-800">
-                                    <TableHead className="text-gray-400 w-12">#</TableHead>
-                                    <TableHead className="text-gray-400">Name</TableHead>
-                                    <TableHead className="text-gray-400 text-right">Price</TableHead>
-                                    <TableHead className="text-gray-400 text-right">24H</TableHead>
-                                    <TableHead className="text-gray-400 text-right">Volume</TableHead>
-                                    <TableHead className="text-gray-400 text-right">Last 7 days</TableHead>
-                                    <TableHead className="text-gray-400 text-center">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-
-                            <TableBody>
-                                {stocks.map((stock, index) => (
-                                    <TableRow 
-                                        key={stock.id} 
-                                        className="border-gray-800 hover:bg-gray-900/50 cursor-pointer"
-                                        onClick={() => handleStockClick(stock.symbol)}
+                        <table className="w-full border-collapse">
+                            <thead>
+                                <tr className="border-b border-gray-800">
+                                    <th className="py-3 px-4 text-left text-gray-400 font-medium">SNo.</th>
+                                    <th className="py-3 px-4 text-left text-gray-400 font-medium">Stock</th>
+                                    <th className="py-3 px-4 text-left text-gray-400 font-medium">Price</th>
+                                    <th className="py-3 px-4 text-left text-gray-400 font-medium">Open</th>
+                                    <th className="py-3 px-4 text-left text-gray-400 font-medium">High</th>
+                                    <th className="py-3 px-4 text-left text-gray-400 font-medium">Low</th>
+                                    <th className="py-3 px-4 text-left text-gray-400 font-medium">Volume</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {stocks.map((stock) => (
+                                    <tr 
+                                        key={stock.ticker} 
+                                        id={`row-${stock.ticker}`}
+                                        className="border-b border-gray-800 hover:bg-gray-900/50 transition-colors"
                                     >
-                                        <TableCell className="flex items-center space-x-2">
-                                            <button 
-                                                onClick={(e) => toggleFavorite(stock.id, e)}
-                                                className="focus:outline-none hover:scale-110 transition-transform"
-                                            >
-                                                <Star 
-                                                    className={`h-5 w-5 ${favorites.has(stock.id) ? 'text-yellow-500 fill-yellow-500' : 'text-gray-600 hover:text-yellow-400'}`} 
-                                                />
-                                            </button>
-                                            <span className="text-gray-400">{index + 1}</span>
-                                        </TableCell>
-
-                                        <TableCell>
-                                            <div className="flex items-center space-x-2">
-                                                <div className="h-8 w-8 rounded-full bg-white/10 p-1 flex items-center justify-center">
-                                                    <img 
-                                                        src={stock.logo} 
-                                                        alt={stock.name} 
-                                                        className="h-6 w-6 rounded-full" 
-                                                        onError={(e) => { e.target.src = 'https://placehold.co/36x36/gray/white?text=?'; }}
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <div className="font-medium text-white">{stock.name}</div>
-                                                    <div className="text-xs text-gray-400">{stock.symbol}</div>
-                                                </div>
-                                            </div>
-                                        </TableCell>
-
-                                        <TableCell className="text-right font-medium text-white">
-                                            <span id={`${stock.symbol}_price`}>{stock.price}</span>
-                                        </TableCell>
-
-                                        <TableCell className="text-right">
-                                            <span id={`${stock.symbol}_open`} className="hidden">{stock.open}</span>
-                                            <span id={`${stock.symbol}_high`} className="hidden">{stock.high}</span>
-                                            <span id={`${stock.symbol}_low`} className="hidden">{stock.low}</span>
-                                            <div className={`flex items-center justify-end ${stock.change24hUp ? 'text-green-500' : 'text-red-500'}`}>
-                                                {stock.change24hUp ? <ArrowUp className="h-3 w-3 mr-1" /> : <ArrowDown className="h-3 w-3 mr-1" />}
-                                                <span id={`${stock.symbol}_change`}>{stock.change24h}</span>
-                                            </div>
-                                        </TableCell>
-
-                                        <TableCell className="text-right text-white">
-                                            <span id={`${stock.symbol}_vol`}>{stock.volume}</span>
-                                        </TableCell>
-
-                                        <TableCell className="text-right">
-                                            <div className="h-10 w-32 flex items-center justify-center">
-                                                {stock.change24hUp ? (
-                                                    <TrendingUp className="text-green-500 h-6 w-6" />
-                                                ) : (
-                                                    <TrendingDown className="text-red-500 h-6 w-6" />
-                                                )}
-                                            </div>
-                                        </TableCell>
-
-                                        <TableCell>
-                                            <button 
-                                                className="p-1.5 rounded-md text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
-                                                onClick={(e) => e.stopPropagation()}
-                                            >
-                                                <MoreHorizontal className="h-4 w-4" />
-                                            </button>
-                                        </TableCell>
-                                    </TableRow>
+                                        <td className="py-3 px-4 text-gray-300">{stock.id}</td>
+                                        <td className="py-3 px-4 font-medium text-white">{stock.ticker}</td>
+                                        <td 
+                                            id={`${stock.ticker}_price`} 
+                                            className="py-3 px-4 font-medium"
+                                            data-prev-value={stock.close}
+                                        >
+                                            {stock.close}
+                                        </td>
+                                        <td id={`${stock.ticker}_open`} className="py-3 px-4 text-gray-300">{stock.open}</td>
+                                        <td id={`${stock.ticker}_high`} className="py-3 px-4 text-gray-300">{stock.high}</td>
+                                        <td id={`${stock.ticker}_low`} className="py-3 px-4 text-gray-300">{stock.low}</td>
+                                        <td id={`${stock.ticker}_vol`} className="py-3 px-4 text-gray-300">{stock.volume}</td>
+                                    </tr>
                                 ))}
-                            </TableBody>
-                        </Table>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     );
 };
+
+
 
 export default Stocklist;

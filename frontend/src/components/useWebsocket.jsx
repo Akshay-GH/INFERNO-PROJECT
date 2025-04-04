@@ -6,29 +6,27 @@ const useWebSocket = (roomName) => {
     useEffect(() => {
         if (!roomName) return;
 
-        // Get current query string
-        const queryString = window.location.search.substring(1);
-        console.log("Query String:", queryString);
+        const wsUrl = new URL(`ws://127.0.0.1:8000/ws/stock/${roomName}/?stock_picker=AAPL&stock_picker=GOOGL&stock_picker=AMZN&stock_picker=MSFT&stock_picker=TSLA&stock_picker=NVDA&stock_picker=META&stock_picker=NFLX`);
+        
 
-        // IMPORTANT: Point to Django backend (port 8000) not Vite
-        const wsUrl = 
-            'ws://localhost:8000' +  // Hardcoded Django backend URL
-            '/ws/stock/' +
-            roomName +
-            '/?' +
-            queryString;
+        console.log("Connecting to WebSocket:", wsUrl.toString());
 
-        console.log("Connecting to WebSocket:", wsUrl);
-
-        // Initialize WebSocket connection
-        const stockSocket = new WebSocket(wsUrl);
+        const stockSocket = new WebSocket(wsUrl); //
         socketRef.current = stockSocket;
+        
+
+        // Add cookie to WebSocket connection
+        stockSocket.onopen = function(event) {
+            console.log("WebSocket connection opened:", event);
+            // This ensures cookies are sent with the WebSocket connection
+            document.cookie = `sessionid=${getCookie('sessionid')}; path=/`;
+        };
 
         stockSocket.onmessage = function(event) {
             const data = JSON.parse(event.data);
+            console.log("good",Object.entries(data))
             console.log("Received Data:", data);
 
-            // Update DOM elements
             for (const [ticker, values] of Object.entries(data)) {
                 const elements = {
                     price: document.getElementById(`${ticker}_price`),
@@ -40,26 +38,31 @@ const useWebSocket = (roomName) => {
 
                 for (const [key, element] of Object.entries(elements)) {
                     if (element && values[key] !== undefined) {
-                        element.innerText = values[key];
+                        if (key === 'price' && element.dataset.prevValue) {
+                            const prevValue = parseFloat(element.dataset.prevValue);
+                            const currentValue = parseFloat(values[key]);
+                            element.classList.remove('text-red-500', 'text-green-500');
+                            if (currentValue > prevValue) {
+                                element.classList.add('text-green-500');
+                            } else if (currentValue < prevValue) {
+                                element.classList.add('text-red-500');
+                            }
+                        }
+                        element.textContent = values[key];
+                        if (key === 'price') {
+                            element.dataset.prevValue = values[key];
+                        }
                     }
                 }
             }
-        };
-
-        stockSocket.onopen = function(event) {
-            console.log("WebSocket connection opened:", event);
         };
 
         stockSocket.onerror = function(error) {
             console.error("WebSocket Error:", error);
         };
 
-        stockSocket.onclose = function(event) {
-            console.log("WebSocket closed:", event);
-        };
-
         return () => {
-            if (socketRef.current) {
+            if (socketRef.current?.readyState === WebSocket.OPEN) {
                 socketRef.current.close();
             }
         };
@@ -67,5 +70,12 @@ const useWebSocket = (roomName) => {
 
     return socketRef;
 };
+
+// Helper function to get cookie value
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
 
 export default useWebSocket;
