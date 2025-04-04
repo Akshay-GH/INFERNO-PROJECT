@@ -73,7 +73,7 @@ export default function Portfolio() {
   // ... rest of your component remains the same ...
 
   return (
-    <div className="px-12 pt-26"
+    <div className="min-h-screen px-12 pt-26"
        style={{ backgroundImage: `url(${BG})`, backgroundSize: "cover", backgroundPosition: "center" }}>
       <div className="mb-8 mx-auto px-3">
         <h1 className="text-3xl font-bold text-white">Portfolio</h1>

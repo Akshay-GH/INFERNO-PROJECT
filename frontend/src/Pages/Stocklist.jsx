@@ -18,7 +18,7 @@ const Stocklist = () => {
 
                 const response = await fetch(`http://127.0.0.1:8000/stocktracker/?stock_picker=AAPL&stock_picker=GOOGL&stock_picker=AMZN&stock_picker=MSFT&stock_picker=TSLA&stock_picker=NVDA&stock_picker=META&stock_picker=NFLX`, {
                     method: "GET",
-                    credentials: 'include', // This sends cookies
+                    credentials: 'include',   // This sends cookies
                     headers: {
                         'Content-Type': 'application/json',
                         // 'X-CSRFToken': getCookie('csrftoken') || '',
@@ -71,7 +71,7 @@ const Stocklist = () => {
                     <div className="flex justify-between items-center mb-6">
                         <h1 className="text-2xl font-bold text-white">Live Stock Tracker</h1>
                         <button 
-                            onClick={() => navigate('/chart')}
+                            onClick={() => navigate('/stock')}
                             className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-colors"
                         >
                             Buy/Sell
@@ -84,6 +84,8 @@ const Stocklist = () => {
                                 <tr className="border-b border-gray-800">
                                     <th className="py-3 px-4 text-left text-gray-400 font-medium">SNo.</th>
                                     <th className="py-3 px-4 text-left text-gray-400 font-medium">Stock</th>
+                                    <th className="py-3 px-4 text-left text-gray-400 font-medium"></th>
+
                                     <th className="py-3 px-4 text-left text-gray-400 font-medium">Price</th>
                                     <th className="py-3 px-4 text-left text-gray-400 font-medium">Open</th>
                                     <th className="py-3 px-4 text-left text-gray-400 font-medium">High</th>
@@ -97,9 +99,11 @@ const Stocklist = () => {
                                         key={stock.ticker} 
                                         id={`row-${stock.ticker}`}
                                         className="border-b border-gray-800 hover:bg-gray-900/50 transition-colors"
+                                        
                                     >
                                         <td className="py-3 px-4 text-gray-300">{stock.id}</td>
                                         <td className="py-3 px-4 font-medium text-white">{stock.ticker}</td>
+                                        <td><button type="button" onClick={() => {return(navigate(`/stockchart/${stock.ticker}`))}} className="w-24 text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-3 py-2 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">trade</button></td>
                                         <td 
                                             id={`${stock.ticker}_price`} 
                                             className="py-3 px-4 font-medium"
@@ -111,6 +115,7 @@ const Stocklist = () => {
                                         <td id={`${stock.ticker}_high`} className="py-3 px-4 text-gray-300">{stock.high}</td>
                                         <td id={`${stock.ticker}_low`} className="py-3 px-4 text-gray-300">{stock.low}</td>
                                         <td id={`${stock.ticker}_vol`} className="py-3 px-4 text-gray-300">{stock.volume}</td>
+                                        
                                     </tr>
                                 ))}
                             </tbody>

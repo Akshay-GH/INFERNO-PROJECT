@@ -12,11 +12,20 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import CandleStickChart from "../components/CandleStickChart";
 import BG from '../assets/BgInferno.svg';
 
+
 const StockChart = () => {
-  const { symbol } = useParams();
+  
+  // const { symbol } = useParams();
   const navigate = useNavigate();
 
-  const [stockSymbol, setStockSymbol] = useState(symbol || "");
+  const {ticker}=useParams();
+  useEffect(() => {
+    if (!ticker) {
+      navigate("/stocklist/"); // Redirect back to home if no ticker is found
+    }
+  }, [ticker, navigate]);
+
+  // const [stockSymbol, setStockSymbol] = useState(symbol || "");
   const [quantity, setQuantity] = useState("");
   const [orderType, setOrderType] = useState("market");
   const [price, setPrice] = useState("");
@@ -37,10 +46,10 @@ const StockChart = () => {
   // }, []);
 
   const handleTrade = async (action) => {
-    if (!stockSymbol || !quantity) {
-      alert("Please select a stock and enter quantity");
-      return;
-    }
+    // if (!stockSymbol || !quantity) {
+    //   alert("Please select a stock and enter quantity");
+    //   return;
+    // }
   
     const qty = parseInt(quantity);
     if (isNaN(qty) || qty <= 0) {
@@ -75,7 +84,7 @@ const StockChart = () => {
   
       // Prepare form data
       const formData = new URLSearchParams();
-      formData.append("stock_symbol", stockSymbol);
+      formData.append("stock_symbol", ticker);
       formData.append("quantity", qty);
       formData.append("order_type", orderType);
       if (orderType === "limit") formData.append("price", price);
@@ -101,7 +110,7 @@ const StockChart = () => {
   
       // Update UI
       setUserBalance(Number(data.balance).toFixed(2));
-      alert(`${action} successful: ${qty} ${stockSymbol} at $${data.price?.toFixed(2) || 'market price'}`);
+      alert(`${action} successful: ${qty} ${ticker} at $${data.price?.toFixed(2) || 'market price'}`);
       
     } catch (error) {
       console.error("Trade error:", error);
@@ -118,7 +127,7 @@ const StockChart = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-28 pb-16 text-white">
         <div className="glass-panel p-6 rounded-xl backdrop-blur-xl border border-gray-700 mb-6">
-          {/* ... rest of your JSX remains the same ... */}
+          <div className='text-white '>{ticker}</div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -126,6 +135,7 @@ const StockChart = () => {
             <div className="glass-panel p-6 rounded-xl backdrop-blur-xl border border-gray-700 h-[600px]">
               <ErrorBoundary>
                 <CandleStickChart 
+                stockSymbol={ticker}
                   height="100%"
                   upColor="#4CAF50"
                   downColor="#FF5252"
@@ -137,14 +147,23 @@ const StockChart = () => {
 
           <div className="lg:col-span-1">
             <div className="p-4 border rounded-lg shadow-lg max-w-md mx-auto">
-              <select
+              {/* <select
                 value={stockSymbol}
                 onChange={(e) => setStockSymbol(e.target.value)}
                 className="block w-full p-2 border rounded mb-2"
               >
                 <option value="">Select Stock</option>
                 <option value="MSFT">MSFT</option>
-              </select>
+                <option value="AAPL">AAPL</option>
+                <option value="GOOGL">GOOGL</option>
+                <option value="AMZN">AMZN</option>
+                <option value="TSLA">TSLA</option>
+                <option value="NVDA">"NVDA</option>
+                <option value="NFLX">NFLX</option>
+                <option value="META">META</option>
+
+
+              </select> */}
 
               <input
                 type="number"

@@ -55,6 +55,7 @@ export default function Leaderboard() {
       }
   
       setLeaderboardData(data.leaderboard_data);
+      setTopThree(data.leaderboard_data.slice(0, 3));
     } catch (error) {
       console.error("Error fetching leaderboard:", error.message);
     }

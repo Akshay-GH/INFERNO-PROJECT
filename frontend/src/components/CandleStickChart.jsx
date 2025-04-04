@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { createChart } from "lightweight-charts";
 
-export default function CandleStickChart({ stockSymbol }) {
+export default function CandleStickChart({ stockSymbol , height,
+  upColor,
+  downColor,
+  showTooltip}) {
   const chartContainerRef = useRef(null);
   const chartInstance = useRef(null);
   const candleSeriesRef = useRef(null);
@@ -102,7 +105,7 @@ export default function CandleStickChart({ stockSymbol }) {
 
   const fetchStockData = async () => {
     try {
-      const response = await fetch("http://localhost:8000/stock_chart_data/MSFT/");
+      const response = await fetch(`http://localhost:8000/stock_chart_data/${stockSymbol}/`);
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
@@ -125,7 +128,8 @@ export default function CandleStickChart({ stockSymbol }) {
           );
         }
   
-        setData(sortedData); // Still keep sorted data in state if needed
+        setData(sortedData);
+        console.log(sortedData) // Still keep sorted data in state if needed
       }
     } catch (error) {
       console.error("Error fetching stock data:", error);
