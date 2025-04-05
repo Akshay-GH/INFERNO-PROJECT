@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useWebSocket from '../components/useWebSocket';
+//import useWebSocket from '../components/useWebSocket';
 import Navbar from '../components/Navbar';
 import StarBackground from '../components/StarBackground';
 import BG from '../assets/BgInferno.svg';
